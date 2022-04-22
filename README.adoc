@@ -1,0 +1,33 @@
+= Семинар по JDBC
+
+== Database в Intellij IDEA
+
+* https://www.jetbrains.com/help/idea/database-tool-window.html[Database tool window]
+
+== Shutdown database
+
+[source,java]
+----
+private static final String DERBY_URL = "jdbc:derby:memory:sampledb42;create=true";
+@SuppressWarnings("ConstantConditions")
+private static final boolean EMBEDDED = !DERBY_URL.startsWith("jdbc:derby://");
+
+@AfterAll
+public void tearDown() throws SQLException {
+    try (Connection connection = getConnection();
+         Statement statement = connection.createStatement()) {
+        // Удаляем таблицу
+        statement.execute("DROP TABLE songs");
+    }
+
+    if (EMBEDDED) {
+        //noinspection EmptyTryBlock
+        try (Connection ignored = DriverManager.getConnection("jdbc:derby:;shutdown=true")) {
+        } catch (SQLException e) {
+            if (!(e.getErrorCode() == 50000 && "XJ015".equals(e.getSQLState()))) {
+                throw new IllegalStateException("Unable to shut down database", e);
+            }
+        }
+    }
+}
+----
