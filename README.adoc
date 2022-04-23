@@ -1,33 +1,90 @@
-= Семинар по JDBC
+= Семинар по JDBC и Mailbox
 
-== Database в Intellij IDEA
+== JDBC
+
+=== Что такое БД
+
+* https://ru.wikipedia.org/wiki/База_данных[База данных -- Википедия]
+* https://www.oracle.com/cis/database/what-is-database/[Что такое база данных?]
+
+==== Примеры БД
+
+* https://www.postgresql.org/[PostgreSQL]
+* https://db.apache.org/derby/[Apache Derby]
+* https://www.mysql.com/[MySQL]
+
+=== Apache Derby
+
+Apache Derby -- реляционная БД. Написана на Java
+
+==== In-memory режим
+
+In-memory -- режим, когда данные не сохраняются на диск, а хранятся в памяти. Если мы:
+
+. Запустим БД в in-memory режиме
+. Заполним БД данными
+. Выключим БД
+. Запустим снова,
+
+то база данных будет пустой
+
+==== Embedded режим
+
+Embedded режим -- это когда базу данных мы запускам внутри нашего приложения.
+
+Альтернативный режим -- https://db.apache.org/derby/papers/DerbyTut/ns_intro.html[Derby Network Server]
+
+=== Database в Intellij IDEA
 
 * https://www.jetbrains.com/help/idea/database-tool-window.html[Database tool window]
+* https://www.jetbrains.com/datagrip/[DataGrip]
 
-== Shutdown database
+=== SQL
 
-[source,java]
-----
-private static final String DERBY_URL = "jdbc:derby:memory:sampledb42;create=true";
-@SuppressWarnings("ConstantConditions")
-private static final boolean EMBEDDED = !DERBY_URL.startsWith("jdbc:derby://");
+SQL -- язык структурированных запросов.
 
-@AfterAll
-public void tearDown() throws SQLException {
-    try (Connection connection = getConnection();
-         Statement statement = connection.createStatement()) {
-        // Удаляем таблицу
-        statement.execute("DROP TABLE songs");
-    }
+* Набор песен я взял с Kaggle: https://www.kaggle.com/datasets/pavan9065/top-100-most-streamed-songs-on-spotify?resource=download[Top 100 Most Streamed Songs on Spotify]
+* Наше демо -- в link:playground.sql[`playground.sql`]
 
-    if (EMBEDDED) {
-        //noinspection EmptyTryBlock
-        try (Connection ignored = DriverManager.getConnection("jdbc:derby:;shutdown=true")) {
-        } catch (SQLException e) {
-            if (!(e.getErrorCode() == 50000 && "XJ015".equals(e.getSQLState()))) {
-                throw new IllegalStateException("Unable to shut down database", e);
-            }
-        }
-    }
-}
-----
+==== План
+
+* `CREATE TABLE`
+* `SELECT`:
+** `ORDER BY` -- сортировка
+** `WHERE`
+*** `LIKE`
+** `COUNT`
+** `GROUP BY`
+* `INSERT`
+* `UPDATE`
+* `DELETE`
+* ``null``'ы
+** `null = null` вернёт `null`
+** `null <> null` вернёт `null`
+** Для проверки на `null` -- `IS NOT NULL` и `IS NULL`
+** `COALESCE` -- вернёт первое не `null` значение
+** https://modern-sql.com/concept/three-valued-logic[Three valued logic]
+
+=== JDBC
+
+JDBC -- API для работы с БД в Java
+
+* Тест с пары -- link:src/test/java/org/diligentsnail/jdbc/ClientTest.java[`ClientTest.java`]
+* О SQL injection: https://vladmihalcea.com/a-beginners-guide-to-sql-injection-and-how-you-should-prevent-it/[A beginner’s guide to SQL injection and how you should prevent it]
+* https://stackoverflow.com/q/3271249/6486622[Difference between Statement and PreparedStatement]
+
+=== Репозиторий
+
+* https://habr.com/ru/post/248505/[Паттерн «Репозиторий». Основы и разъяснения]
+* Пример -- link:src/main/java/org/diligentsnail/jdbc/SongRepository.java[`SongRepository`], link:src/main/java/org/diligentsnail/jdbc/JdbcSongRepository.java[`JdbcSongRepository`]
+
+=== Примеры использования
+
+* https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html[`JdbcTemplate`] из Spring'а
+* https://www.jooq.org/[jooq]
+* https://hibernate.org/orm/[Hibernate ORM]
+
+== Mailbox
+
+* Обсуждения в link:src/main/java/org/diligentsnail/jdbc/Mailbox.java[`Mailbox.java`]
+* Интерфейс -- link:src/main/java/org/diligentsnail/jdbc/MailBoxClient.java[`MailBoxClient.java`]
