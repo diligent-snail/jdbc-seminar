@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,6 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -118,6 +122,25 @@ public class JdbcTest {
 		}
 	}
 
+	@Test
+	@Order(5)
+	void songsFound() {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setUrl("jdbc:derby:memory:sample;create=true");
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+		List<Song> songs = jdbcTemplate.query("SELECT * FROM songs", (rs, rowNum) -> {
+			Song song = new Song();
+			song.setId(rs.getLong("id"));
+			song.setArtist(rs.getString("artist"));
+			song.setTitle(rs.getString("title"));
+			return song;
+		});
+
+		System.out.println(songs);
+
+		assertThat(songs).isNotEmpty();
+	}
 
 	private Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(
