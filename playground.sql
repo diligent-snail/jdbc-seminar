@@ -1,12 +1,14 @@
 CREATE TABLE songs
 (
-	id           BIGINT       NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY,
+	id           BIGINT       NOT NULL GENERATED
+		ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY,
 	title        VARCHAR(512) NOT NULL,
 	artist       VARCHAR(512) NOT NULL,
 	genre        VARCHAR(255) NOT NULL,
 	release_year INTEGER CHECK (release_year > 0),
-	UNIQUE (title, artist)
+	UNIQUE (title, artist) -- A B
 );
+
 
 INSERT INTO songs (title, artist, genre, release_year)
 VALUES ('Blinding Lights', 'The Weeknd', 'canadian contemporary r&b', 2020),
@@ -111,73 +113,99 @@ VALUES ('Blinding Lights', 'The Weeknd', 'canadian contemporary r&b', 2020),
 	   ('I Took A Pill In Ibiza - Seeb Remix', 'Mike Posner', 'dance pop', 2016);
 
 
-
 SELECT *
-FROM SONGS;
-
-SELECT *
-FROM SONGS
-WHERE artist = 'Billie Eilish';
+FROM songs;
 
 SELECT title
+FROM songs;
+
+SELECT *
+FROM songs
+ORDER BY id DESC;
+
+SELECT *
 FROM songs
 WHERE artist = 'Dua Lipa';
 
 SELECT *
-FROM SONGS
-ORDER BY artist, title, id;
+FROM songs
+WHERE genre like '%rap%';
 
-SELECT COUNT(*) AS c, artist
-FROM SONGS
-GROUP BY artist
-ORDER BY c DESC;
+SELECT *
+FROM songs
+WHERE release_year = 2020;
+
+SELECT title, UPPER(title)
+FROM songs;
+
+SELECT COUNT(*)
+FROM songs;
+
+SELECT artist, COUNT(*) AS c, MIN(release_year)
+FROM songs
+GROUP BY artist;
+
+INSERT INTO songs(artist, title, release_year, genre)
+VALUES ('Billie Eilish', 'everything i wanted', 2020, 'pop');
+
+SELECT *
+FROM songs
+where artist = 'Billie Eilish';
+
+UPDATE songs
+SET genre = 'electropop'
+WHERE id = 101;
+
+SELECT *
+FROM songs
+where id = 101;
+
+DELETE
+FROM songs
+WHERE id = 101;
+
+SELECT *
+FROM songs
+where id = 101;
+
+-- DELETE FROM songs;
+
+
+select *
+from songs
+where artist = 'Ed Sheeran';
+
+
+-- null == null
+select cast(null as int) = cast(null as int)
+FROM SYSIBM.SYSDUMMY1;
+select cast(null as int) <> cast(null as int)
+FROM SYSIBM.SYSDUMMY1;
+
+select 'abc' || cast(null as varchar(255)) || 'def'
+FROM SYSIBM.SYSDUMMY1;
+
+-- FROM DUAL
+select 1
+FROM SYSIBM.SYSDUMMY1;
+
+select cast(null as int) is not null
+FROM SYSIBM.SYSDUMMY1;
+select coalesce(cast(null as int), 1)
+FROM SYSIBM.SYSDUMMY1;
+
 
 SELECT s.artist, c, title
 FROM SONGS as s
 		 INNER JOIN (SELECT COUNT(*), artist FROM songs GROUP BY artist) as t(c, artist) ON s.artist = t.artist
 order by c desc, s.artist, title;
+;
 
-select genre, count(*) as c
-from songs
-group by genre
-order by c desc;
-
-select title
-FROM songs
-where artist = 'Ed Sheeran';
-
-
-select count(*)
-from songs
-where genre like '%rap%';
-
-select title
-from songs
-where artist = 'The Chainsmokers';
-
-INSERT INTO songs(title, artist, genre, release_year)
-VALUES ('everything i wanted', 'Billie Eilish', 'pop', 2019);
-
-select *
-from songs
-where artist like '%lana%';
-
-update songs
-set title = UPPER(title)
-where id = 102;
-
-delete
-from songs
-where id = 102;
-
--- delete from songs;
-
-SELECT CAST(NULL AS VARCHAR(255)) || 'ABC'
-FROM SYSIBM.SYSDUMMY1;
-
-SELECT CAST(NULL AS INT) IS NULL
-FROM SYSIBM.SYSDUMMY1;
-SELECT CAST(NULL AS INT) IS NOT NULL
-FROM SYSIBM.SYSDUMMY1;
-SELECT COALESCE(30, CAST(NULL AS INT), 10, 20)
-FROM SYSIBM.SYSDUMMY1;
+-- cte = Common Table Expression
+-- WITH t() as select
+-- select
+-- Спасибо Мише
+SELECT title, t1.artist, release_year
+FROM songs AS t1
+		 INNER JOIN (SELECT artist, MAX(release_year) AS publish_year FROM songs GROUP BY artist)
+	AS t2 ON t1.artist = t2.artist AND t1.release_year = t2.publish_year
